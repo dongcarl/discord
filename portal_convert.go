@@ -104,6 +104,7 @@ func (portal *Portal) cleanupConvertedStickerInfo(content *event.MessageEventCon
 
 func (portal *Portal) convertDiscordSticker(ctx context.Context, intent *appservice.IntentAPI, sticker *discordgo.Sticker) *ConvertedMessage {
 	var mime, ext string
+	var nomxc bool
 	switch sticker.FormatType {
 	case discordgo.StickerFormatTypePNG:
 		mime = "image/png"
@@ -114,6 +115,7 @@ func (portal *Portal) convertDiscordSticker(ctx context.Context, intent *appserv
 	case discordgo.StickerFormatTypeLottie:
 		mime = "application/json"
 		ext = "json"
+		nomxc = true
 	case discordgo.StickerFormatTypeGIF:
 		mime = "image/gif"
 		ext = "gif"
@@ -131,7 +133,7 @@ func (portal *Portal) convertDiscordSticker(ctx context.Context, intent *appserv
 	}
 
 	mxc := portal.bridge.Config.Bridge.MediaPatterns.Sticker(sticker.ID, ext)
-	if mxc.IsEmpty() {
+	if mxc.IsEmpty() || nomxc {
 		content = portal.convertDiscordFile(ctx, "sticker", intent, sticker.ID, sticker.URL(), content)
 	} else {
 		content.URL = mxc.CUString()
